@@ -1,6 +1,50 @@
 #include "shell.h"
 
 /**
+ * input_buf - buffers chained commands
+ * @info: parameter struct
+ * @buf: address of buffer
+ * @len: address of len var
+ *
+ * Return: bytes read
+ */
+ssize_t input_buf(info_t *info, char **buf, size_t *len)
+{
+	ssize_t n = 0;
+	size_t len_p = 0;
+
+	if (!*len) /* if nothing left in the buffer, fill it */
+	{
+		/*bfree((void **)info->cmd_buf);*/
+		free(*buf);
+		*buf = NULL;
+		signal(SIGINT, sigintHandler);
+#if USE_GETLINE
+		n = getline(buf, &len_p, stdin);
+#else
+		n = _getline(info, buf, &len_p);
+#endif
+		if (n > 0)
+		{
+			if ((*buf)[n - 1] == '\n')
+			{
+				(*buf)[n - 1] = '\0'; /* remove trailing newline */
+				n--;
+			}
+			info->linecount_flag = 1;
+			remove_comments(*buf);
+			build_history_list(info, *buf, info->histcount++);
+			/* if (_strchr(*buf, ';')) is this a command chain? */
+			{
+				*len = n;
+				info->cmd_buf = buf;
+			}
+		}
+	}
+	return (n);
+}
+
+/**
  * get_input - gets a line minus the newline
  * @info: parameter struct
  *
@@ -45,20 +89,6 @@ ssize_t get_input(info_t *info)
 	return (n); /* return length of buffer from _getline() */
 }
 
-
-/**
- * sigintHandler - blocks ctrl-C
- * @sig_num: the signal number
- *
- * Return: void
- */
-void sigintHandler(__attribute__((unused))int sig_num)
-{
-	_puts("\n");
-	_puts("$ ");
-	_putchar(BUF_FLUSH);
-}
-
 /**
  * read_buf - reads a buffer
  * @info: parameter struct
@@ -78,51 +108,6 @@ ssize_t read_buf(info_t *info, char *buf, size_t *i)
 		*i = n;
 	return (n);
 }
-
-/**
- * input_buf - buffers chained commands
- * @info: parameter struct
- * @buf: address of buffer
- * @len: address of len var
- *
- * Return: bytes read
- */
-ssize_t input_buf(info_t *info, char **buf, size_t *len)
-{
-	ssize_t n = 0;
-	size_t len_p = 0;
-
-	if (!*len) /* if nothing left in the buffer, fill it */
-	{
-		/*bfree((void **)info->cmd_buf);*/
-		free(*buf);
-		*buf = NULL;
-		signal(SIGINT, sigintHandler);
-#if USE_GETLINE
-		n = getline(buf, &len_p, stdin);
-#else
-		n = _getline(info, buf, &len_p);
-#endif
-		if (n > 0)
-		{
-			if ((*buf)[n - 1] == '\n')
-			{
-				(*buf)[n - 1] = '\0'; /* remove trailing newline */
-				n--;
-			}
-			info->linecount_flag = 1;
-			remove_comments(*buf);
-			build_history_list(info, *buf, info->histcount++);
-			/* if (_strchr(*buf, ';')) is this a command chain? */
-			{
-				*len = n;
-				info->cmd_buf = buf;
-			}
-		}
-	}
-	return (n);
-}
-
 
 /**
  * _getline - gets the next line of input from STDIN
@@ -170,3 +155,17 @@ int _getline(info_t *info, char **ptr, size_t *length)
 	*ptr = p;
 	return (n);
 }
+
+/**
+ * sigintHandler - blocks ctrl-C
+ * @sig_num: the signal number
+ *
+ * Return: void
+ */
+void sigintHandler(__attribute__((unused))int sig_num)
+{
+	_puts("\n");
+	_puts("$ ");
+	_putchar(BUF_FLUSH);
+}
+
