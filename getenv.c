@@ -18,8 +18,8 @@ int _unsetenv(info_t *info, char *var)
 
 	while (node)
 	{
-		p = starts_with(node->str, var);
-		if (p && *e == '=')
+		e = starts_with(node->str, var);
+		if (e && *e == '=')
 		{
 			info->env_changed = delete_node_at_index(&(info->env), j);
 			j = 0;
