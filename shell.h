@@ -107,10 +107,32 @@ info_t;
 #define INFO_INIT \
 {NULL, NULL, NULL, 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, 0, 0, NULL, \
 	0, 0, 0}
+
+/**
+ *struct builtin - contains a builtin string and related function
+ *@type: the builtin command flag
+ *@func: the function
+ */
+typedef struct builtin
+{
+	char *type;
+	int (*func)(info_t *);
+} builtin_table;
+
+
+/* toem_shloop.c */
+int hsh(info_t *, char **);
+int find_builtin(info_t *);
+void find_cmd(info_t *);
+void fork_cmd(info_t *);
+
 /* toem_parser.c */
 char *dup_chars(char *, int, int);
 int is_cmd(info_t *, char *);
 char *find_path(info_t *, char *, char *);
+
+/* loophsh.c */
+int loophsh(char **);
 
 /* toem_errors.c */
 int _eputchar(char);
