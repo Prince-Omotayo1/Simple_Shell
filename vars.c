@@ -47,7 +47,7 @@ void check_chain(info_t *info, char *buf, size_t *p, size_t i, size_t len)
 	{
 		if (info->status)
 		{
-			buf[k] = 0;
+			buf[i] = 0;
 			k = len;
 		}
 	}
@@ -55,7 +55,7 @@ void check_chain(info_t *info, char *buf, size_t *p, size_t i, size_t len)
 	{
 		if (!info->status)
 		{
-			buf[k] = 0;
+			buf[i] = 0;
 			k = len;
 		}
 	}
