@@ -47,7 +47,7 @@ char *_memset(char *s, char b, unsigned int n)
 }
 
 /**
- * free - frees a string of strings
+ * ffree - frees a string of strings
  * @pp: string of strings
  */
 void ffree(char **pp)
