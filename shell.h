@@ -55,7 +55,6 @@ typedef struct liststr
 	struct liststr *next;
 } list_t;
 
-
 /**
  *struct passinfo - contains pseudo-arguments to pass into a function,
  *		allowing uniform prototype for function pointer struct
@@ -100,9 +99,7 @@ typedef struct passinfo
 	char **cmd_buf; /* pointer to cmd ; chain buffer, for memory management */
 	int cmd_buf_type; /* CMD_type ||, &&, ; */
 	int readfd;
-} 
-
-info_t;
+}info_t;
 
 #define INFO_INIT \
 {NULL, NULL, NULL, 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, 0, 0, NULL, \
