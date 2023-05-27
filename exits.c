@@ -1,74 +1,93 @@
 #include "shell.h"
 
 /**
- **_strchr - locates a character in a string
- *@s: the string to be parsed
- *@c: the character to look for
- *Return: (s) a pointer to the memory area s
+ * get_environ - returns the string array copy of our environ
+ * @info: Structure containing potential arguments. Used to maintain
+ *          constant function prototype.
+ * Return: Always 0
  */
-char *_strchr(char *s, char c)
+char **get_environ(info_t *info)
 {
-	do {
-		if (*s == c)
-			return (s);
-	} while (*s++ != '\0');
+	if (!info->environ || info->env_changed)
+	{
+		info->environ = list_to_strings(info->env);
+		info->env_changed = 0;
+	}
 
-	return (NULL);
+	return (info->environ);
 }
 
 /**
- **_strncpy - copies a string
- *@dest: the destination string to be copied to
- *@src: the source string
- *@n: the amount of characters to be copied
- *Return: the concatenated string
+ * _unsetenv - Remove an environment variable
+ * @info: Structure containing potential arguments. Used to maintain
+ *        constant function prototype.
+ *  Return: 1 on delete, 0 otherwise
+ * @var: the string env var property
  */
-char *_strncpy(char *dest, char *src, int n)
+int _unsetenv(info_t *info, char *var)
 {
-	int a, b;
-	char *e = dest;
+	list_t *node = info->env;
+	size_t i = 0;
+	char *p;
 
-	a = 0;
-	while (src[a] != '\0' && a < n - 1)
+	if (!node || !var)
+		return (0);
+
+	while (node)
 	{
-		dest[a] = src[a];
-		a++;
-	}
-	if (a < n)
-	{
-		b = a;
-		while (b < n)
+		p = starts_with(node->str, var);
+		if (p && *p == '=')
 		{
-			dest[b] = '\0';
-			b++;
+			info->env_changed = delete_node_at_index(&(info->env), i);
+			i = 0;
+			node = info->env;
+			continue;
 		}
+		node = node->next;
+		i++;
 	}
-	return (e);
+	return (info->env_changed);
 }
 
 /**
- **_strncat - concatenates two strings
- *@dest: the first string
- *@src: the second string
- *@n: the amount of bytes to be maximally used
- *Return: the concatenated string
+ * _setenv - Initialize a new environment variable,
+ *             or modify an existing one
+ * @info: Structure containing potential arguments. Used to maintain
+ *        constant function prototype.
+ * @var: the string env var property
+ * @value: the string env var value
+ *  Return: Always 0
  */
-char *_strncat(char *dest, char *src, int n)
+int _setenv(info_t *info, char *var, char *value)
 {
-	int a, b;
-	char *e = dest;
+	char *buf = NULL;
+	list_t *node;
+	char *p;
 
-	a = 0;
-	b = 0;
-	while (dest[a] != '\0')
-		a++;
-	while (src[b] != '\0' && b < n)
+	if (!var || !value)
+		return (0);
+
+	buf = malloc(_strlen(var) + _strlen(value) + 2);
+	if (!buf)
+		return (1);
+	_strcpy(buf, var);
+	_strcat(buf, "=");
+	_strcat(buf, value);
+	node = info->env;
+	while (node)
 	{
-		dest[a] = src[b];
-		a++;
-		b++;
+		p = starts_with(node->str, var);
+		if (p && *p == '=')
+		{
+			free(node->str);
+			node->str = buf;
+			info->env_changed = 1;
+			return (0);
+		}
+		node = node->next;
 	}
-	if (b < n)
-		dest[a] = '\0';
-	return (e);
+	add_node_end(&(info->env), buf, 0);
+	free(buf);
+	info->env_changed = 1;
+	return (0);
 }
